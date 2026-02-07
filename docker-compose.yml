@@ -16,7 +16,7 @@ services:
 
   bot:
     build: .
-    container_name: promo_bot
+    container_name: promo_bot3
     restart: always
     depends_on:
       - db
