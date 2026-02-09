@@ -141,7 +141,10 @@ async def save_promo_photo(message: Message, state: FSMContext):
     await state.clear()
     await message.answer(INFO_TEXT)
 
-@router.callback_query(StateFilter(EditReplic.editing_text), F.data == "cancel_edit")
+@router.callback_query(
+    StateFilter(EditReplic.editing_text, EditReplic.waiting_promo_photo),
+    F.data == "cancel_edit",
+)
 async def cancel_edit(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     await callback.message.edit_text("Редактирование отменено.")
