@@ -209,7 +209,14 @@ async def dob_confirm_yes(callback: CallbackQuery, state: FSMContext):
     )
 
     text = await get_replic("consciousness_message")
-    await callback.message.edit_text(
+    # Оставляем подтверждение даты в истории (убираем только кнопки),
+    # а результат отправляем отдельным сообщением, чтобы можно было перечитать.
+    try:
+        await callback.message.edit_reply_markup(reply_markup=None)
+    except Exception:
+        pass
+
+    await callback.message.answer(
         text.format(name=name, num=cons_num, desc=cons_desc),
         reply_markup=next_keyboard("mission"),
     )
@@ -225,7 +232,13 @@ async def show_mission(callback: CallbackQuery, state: FSMContext):
     mission_desc = data["mission_desc"]
 
     text = await get_replic("mission_message")
-    await callback.message.edit_text(
+    # Сохраняем прошлое сообщение, убираем кнопки и отправляем новое
+    try:
+        await callback.message.edit_reply_markup(reply_markup=None)
+    except Exception:
+        pass
+
+    await callback.message.answer(
         text.format(name=name, num=mission_num, desc=mission_desc),
         reply_markup=next_keyboard("combo"),
     )
@@ -238,7 +251,12 @@ async def show_combo(callback: CallbackQuery, state: FSMContext):
     combo_desc = data.get("combo_desc", "")
     final = await get_replic("final_message")
     text = await get_replic("combo_message")
-    await callback.message.edit_text(
+    try:
+        await callback.message.edit_reply_markup(reply_markup=None)
+    except Exception:
+        pass
+
+    await callback.message.answer(
         text.format(desc=combo_desc, final=final.format(name=data["name"])),
         reply_markup=next_keyboard("final"),
     )
@@ -257,7 +275,12 @@ async def show_final(callback: CallbackQuery, state: FSMContext):
     # Финал
     final = await get_replic("final_message")
     bot_username = (await callback.bot.get_me()).username or ""
-    await callback.message.edit_text(
+    try:
+        await callback.message.edit_reply_markup(reply_markup=None)
+    except Exception:
+        pass
+
+    await callback.message.answer(
         final.format(name=name),
         reply_markup=share_and_promo_keyboard(bot_username=bot_username, promo_link=promo_link or None),
     )
