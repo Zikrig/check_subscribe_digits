@@ -1,3 +1,4 @@
+import asyncio
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
 from aiogram.filters import StateFilter
@@ -264,6 +265,9 @@ async def show_combo(callback: CallbackQuery, state: FSMContext):
         text.format(desc=combo_desc),
         reply_markup=share_keyboard(bot_username),
     )
+    
+    # Задержка 10 секунд перед отправкой сообщения об акции
+    await asyncio.sleep(10)
     
     # Автоматически отправляем сообщение про акцию
     promo_intro = await get_replic("promo_intro_message")
