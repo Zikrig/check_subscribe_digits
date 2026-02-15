@@ -8,6 +8,8 @@ from app.keyboards import (
     subscription_keyboard,
     confirm_date_keyboard,
     next_keyboard,
+    share_keyboard,
+    promo_keyboard,
     share_and_promo_keyboard,
     day_keyboard,
     month_keyboard,
@@ -249,57 +251,57 @@ async def show_mission(callback: CallbackQuery, state: FSMContext):
 async def show_combo(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     combo_desc = data.get("combo_desc", "")
-    final = await get_replic("final_message")
     text = await get_replic("combo_message")
+    bot_username = (await callback.bot.get_me()).username or ""
+    
     try:
         await callback.message.edit_reply_markup(reply_markup=None)
     except Exception:
         pass
 
+    # Сообщение о сочетании + кнопка "Поделиться ботом"
     await callback.message.answer(
-        text.format(desc=combo_desc, final=final.format(name=data["name"])),
-        reply_markup=next_keyboard("final"),
+        text.format(desc=combo_desc),
+        reply_markup=share_keyboard(bot_username),
     )
-    await callback.answer()
-
-
-@router.callback_query(StateFilter(NumerologyFlow.showing), F.data == "next_final")
-async def show_final(callback: CallbackQuery, state: FSMContext):
-    data = await state.get_data()
-    name = data["name"]
-
+    
+    # Автоматически отправляем сообщение про акцию
+    promo_intro = await get_replic("promo_intro_message")
     promo_text = (await get_replic("promo_text")).strip()
     promo_link = (await get_replic("promo_link")).strip()
     promo_photo = (await get_replic("promo_photo_file_id")).strip()
-
-    # Финал
-    final = await get_replic("final_message")
-    bot_username = (await callback.bot.get_me()).username or ""
-    try:
-        await callback.message.edit_reply_markup(reply_markup=None)
-    except Exception:
-        pass
-
-    await callback.message.answer(
-        final.format(name=name),
-        reply_markup=share_and_promo_keyboard(bot_username=bot_username, promo_link=promo_link or None),
-    )
-
-    # Акция отдельным сообщением (если задана)
+    
+    # Текст "Не забудь воспользоваться приятной акцией..."
+    await callback.message.answer(promo_intro)
+    
+    # Картинка, описание, кнопка "Акция" (в такой последовательности)
     if promo_photo:
         try:
-            await callback.message.answer_photo(photo=promo_photo, caption=promo_text or None)
+            # Картинка с описанием (если есть) и кнопкой "Акция" (если есть ссылка)
+            caption = promo_text if promo_text else None
+            kb = promo_keyboard(promo_link) if promo_link else None
+            await callback.message.answer_photo(photo=promo_photo, caption=caption, reply_markup=kb)
         except Exception:
-            # если file_id битый — хотя бы текстом
+            # Если file_id битый — отправляем текстом
             if promo_text:
-                await callback.message.answer(promo_text)
-            if promo_link:
-                await callback.message.answer(promo_link)
+                kb = promo_keyboard(promo_link) if promo_link else None
+                await callback.message.answer(promo_text, reply_markup=kb)
+            elif promo_link:
+                await callback.message.answer("Акция:", reply_markup=promo_keyboard(promo_link))
     else:
+        # Нет картинки — отправляем описание и кнопку
         if promo_text:
-            await callback.message.answer(promo_text)
-        if promo_link:
-            await callback.message.answer(promo_link)
-
+            kb = promo_keyboard(promo_link) if promo_link else None
+            await callback.message.answer(promo_text, reply_markup=kb)
+        elif promo_link:
+            await callback.message.answer("Акция:", reply_markup=promo_keyboard(promo_link))
+    
     await state.clear()
     await callback.answer()
+
+
+# Обработчик next_final больше не используется, но оставляем на случай если где-то осталась ссылка
+@router.callback_query(StateFilter(NumerologyFlow.showing), F.data == "next_final")
+async def show_final(callback: CallbackQuery, state: FSMContext):
+    # Перенаправляем на combo (новый финал)
+    await show_combo(callback, state)

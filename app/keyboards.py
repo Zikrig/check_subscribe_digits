@@ -54,6 +54,17 @@ def next_keyboard(step: str):
     return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Далее", callback_data=cb)]])
 
 
+def share_keyboard(bot_username: str):
+    """Только кнопка 'Поделиться ботом'"""
+    share_url = f"https://t.me/share/url?url=https://t.me/{bot_username.lstrip('@')}"
+    return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Поделиться ботом", url=share_url)]])
+
+
+def promo_keyboard(promo_link: str):
+    """Только кнопка 'Акция'"""
+    return InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Акция", url=promo_link)]])
+
+
 def share_and_promo_keyboard(bot_username: str, promo_link: str | None = None):
     share_url = f"https://t.me/share/url?url=https://t.me/{bot_username.lstrip('@')}"
     rows = [[InlineKeyboardButton(text="Поделиться ботом", url=share_url)]]
