@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -12,10 +13,9 @@ class Settings:
         chat_id, username = item.split(":")
         CHANNELS.append({"id": int(chat_id), "username": username})
 
-    DB_URL = (
-        f"postgresql+asyncpg://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}"
-        f"@{os.getenv('POSTGRES_HOST')}:{os.getenv('POSTGRES_PORT')}/{os.getenv('POSTGRES_DB')}"
-    )
+    SQLITE_PATH = os.getenv("SQLITE_PATH", "data/promos.db")
+    Path(SQLITE_PATH).parent.mkdir(parents=True, exist_ok=True)
+    DB_URL = f"sqlite+aiosqlite:///{Path(SQLITE_PATH).as_posix()}"
     
     SHEET_ID = os.getenv("SHEET_ID")
     
